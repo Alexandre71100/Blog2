@@ -13,6 +13,7 @@
     <script src="script.js" defer></script>
 </head>
 <body>
+
     <header class="bg-dark py-4">
         <div class="container">
 
@@ -74,7 +75,67 @@
         </div>
     </header>
             <div class="gradient"></div>
-        <main class="py-5">
+
+<!-------------------------------------------- PHP ----------------------------------------------->
+
+    <main class="py-5">
+        <div class='container'>
+            <div class='row'>       
+
+<?php
+
+
+/**
+ * Séléction de données en BDD
+ */
+
+ // Connexion à la BDD
+require_once 'connexion.php';
+
+// Chargement des dépendances Composer
+require_once 'vendor/autoload.php';
+
+// Effectue la requête SQL
+$query = $db->query('SELECT posts.id, posts.title, posts.content, posts.cover, posts.created_at, categories.name AS category FROM posts INNER JOIN categories ON categories.id = posts.category_id ORDER BY posts.created_at DESC ');
+
+// Récupère tous les résultats de la requête SQL et je les stocke dans la variable "articles"
+$posts = $query->fetchAll();
+$query->execute();
+//dump($articles);
+
+                        foreach($posts as $post) {
+                                     echo "<div class='col-12 col-lg-6 pb-5'>";
+                                         echo "<article>";
+                                         $f_date = strtotime($post['created_at']);
+                                         $date = date('d, F, Y', $f_date);
+                                         $text = substr($post['content'], 0, 200). '...';
+                                         $ids = $post['id'];
+                                                                
+                                            echo "<a href='article.php?id=' $ids title='{$post['title']}' class='text-dark text-decoration-none'>";
+                                            echo    "<img src='Images/upload/{$post['cover']}' alt='{$post['cover']}' class='w-100 rounded'>";
+                                            echo    "<h1 class='pt-2'>{$post['title']}</h1>";
+                                            echo "</a>";
+                                            echo"<p class='text-secondary'>$date</p>";
+                                            echo "<p class='py-2'>$text</p>";
+                                            echo "<div class='d-flex align-items-center gap-2'>";                                          
+                                            echo    "<a href='#' title='{$post['category']}' class='badge rounded-pill bg-primary text-decoration-none'>{$post['category']}</a>";
+                                            echo "</div>";
+
+                                        echo "</article>";
+                                    echo "</div>";                           
+                        }
+?>
+
+            </div>
+        </div>
+    </main>
+
+
+
+
+
+<!------------------------------------------ HTML MAIN ------------------------------------------->
+   <!--     <main class="py-5">
             <div class="container">
                 <div class="row">
                     <div class="col-12 col-lg-6 pb-5">
@@ -185,7 +246,7 @@
                 </div>
 
             </div>
-        </main>
+        </main>-->
 
         <!-- Footer -->
         <footer class="bg-dark py-4">
