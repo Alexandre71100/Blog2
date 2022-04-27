@@ -1,10 +1,38 @@
+<?php
+// Connexion à la BDD
+require_once 'connexion.php';
+
+// Chargement des dépendances Composer
+require_once 'vendor/autoload.php';
+
+//dump($_GET['id']);
+
+// Nettoyage de la valeur reçue
+$id = htmlspecialchars(strip_tags($_GET['id']));
+
+// Effectue la requête SQL
+$query = $db->prepare('SELECT posts.id, posts.title, posts.content, posts.cover, posts.created_at, users.firstname, users.lastname, categories.name AS category FROM posts INNER JOIN categories ON categories.id = posts.category_id INNER JOIN users ON users.id = posts.category_id WHERE posts.id = :id ORDER BY posts.created_at DESC ');
+
+$query->bindValue(':id', $id, PDO::PARAM_INT);
+$query->execute();
+
+$article = $query->fetch();
+
+// Si $article est égal à false...
+if(!$article) {
+    header('Location: 404.php');
+}
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Philosophy. - Article</title>
+        <title>Philosophy. - <?php echo $article['title'] ?></title>
 
         <!-- JavaScript Bundle with Popper -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
@@ -55,50 +83,36 @@
         <main class="pt-5">
             <div class="container">
 
-            <!-- PHP --->
-<?php
-// Connexion à la BDD
-require_once 'connexion.php';
-
-// Chargement des dépendances Composer
-require_once 'vendor/autoload.php';
-
-dump($_GET['id']);
-
-// Effectue la requête SQL
-$query = $db->query('SELECT posts.id, posts.title, posts.content, posts.cover, posts.created_at, users.firstname, users.lastname, categories.name AS category FROM posts INNER JOIN categories ON categories.id = posts.category_id INNER JOIN users ON users.id = posts.category_id WHERE posts.id = $_GET ORDER BY posts.created_at DESC ');
-
-// Récupère tous les résultats de la requête SQL et je les stocke dans la variable "articles"
-$posts = $query->fetch();
-$query->execute();
-
-?>
-            
-
-
-            <!-- ---------------------------------------------------------- -->
+            <!-------------------------- PHP -------------------------->
 
                 <article>
-                    <h1 class="h1 text-start text-lg-center"><?php echo $posts['title'] ?></h1>
+                    <h1 class="h1 text-start text-lg-center"><?php echo $article['title'] ?></h1>
                     <div class="row pt-lg-2 justify-content-center">
                         <div class="col-12 col-lg-6 text-start text-lg-end">
-                            <p class="text-secondary"><?php echo $posts['created_at'] ?></p>
+                            <p class="text-secondary">
+                                            <?php 
+                                                $timestamp = strtotime($article['created_at']);
+                                                echo date('d, F, Y', $timestamp); 
+                                            ?>
+                                            </p>
                         </div>
                         <div class="col-12 col-lg-6">
                             <div class="d-flex align-items-center gap-2">
-                                <a href="#" title="Photography" class="badge rounded-pill bg-primary text-decoration-none"><?php echo $posts['category']?></a>
+                                <a href="#" title="<?php echo $article['category']?>" class="badge rounded-pill bg-primary text-decoration-none"><?php echo $article['category']?></a>
+                                <?php echo "{$article['lastname']} {$article['firstname']}"; ?>
                             </div>
                         </div>
                         <div class="col-12 py-5 text-center">
-                            <img src="images/01.jpg" alt="Image de l'article" class="rounded read-article-img">
+                            <img src="images/upload/<?php echo $article['cover']; ?>" alt="<?php echo $article['cover']; ?>" class="rounded read-article-img">
                         </div>
                         <div class="col-12 col-lg-6 article">
-                            <p class="fw-bold"><?php echo $posts['content'] ?></p>
-                            <p class="fw-bold"><?php echo $posts['content'] ?></p>
-                                
+                            <p class="fw-bold"><?php echo $article['content'] ?></p>
+
                         </div>
                     </div>
                 </article>
+
+            <!-- -------------------------------------------------------- -->
 
             </div>
             <div class="container-fluid bg-light mt-5">

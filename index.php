@@ -1,3 +1,26 @@
+<?php
+
+/**
+ * Séléction de données en BDD
+ */
+
+// Connexion à la BDD
+require_once 'connexion.php';
+
+// Chargement des dépendances Composer
+require_once 'vendor/autoload.php';
+
+// Passe la requête SQL
+$query = $db->query('SELECT posts.id, posts.title, posts.content, posts.cover, posts.created_at, posts.category_id, categories.name AS category FROM posts INNER JOIN categories ON categories.id = posts.category_id ORDER BY posts.created_at DESC');
+
+// Recupère tous les résultats et je les stocke dans la variable "$articles"
+$articles = $query->fetchAll();
+
+// dump($articles);
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,7 +62,7 @@
                     <nav>
                         <ul class="d-flex align-items-center justify-content-center gap-5 py-3">
                             <li><a href="#" title="Home"class="text-secondary text-decoration-none">Home</a></li>
-                            <li><a href="#" title="Categorie" class="text-secondary text-decoration-none">Categorie</a></li>
+                            <li><a href="categories.php" title="Categorie" class="text-secondary text-decoration-none">Categorie</a></li>
                             <li><a href="#" title="Styles" class="text-secondary text-decoration-none">Styles</a></li>
                             <li><a href="#" title="About" class="text-secondary text-decoration-none">About</a></li>
                             <li><a href="#" title="Contact" class="text-secondary text-decoration-none">Conctact</a></li>
@@ -82,49 +105,33 @@
         <div class='container'>
             <div class='row'>       
 
-<?php
-
-
-/**
- * Séléction de données en BDD
- */
-
- // Connexion à la BDD
-require_once 'connexion.php';
-
-// Chargement des dépendances Composer
-require_once 'vendor/autoload.php';
-
-// Effectue la requête SQL
-$query = $db->query('SELECT posts.id, posts.title, posts.content, posts.cover, posts.created_at, categories.name AS category FROM posts INNER JOIN categories ON categories.id = posts.category_id ORDER BY posts.created_at DESC ');
-
-// Récupère tous les résultats de la requête SQL et je les stocke dans la variable "articles"
-$posts = $query->fetchAll();
-$query->execute();
-//dump($articles);
-
-                        foreach($posts as $post) {
-                                     echo "<div class='col-12 col-lg-6 pb-5'>";
-                                         echo "<article>";
-                                         $f_date = strtotime($post['created_at']);
-                                         $date = date('d, F, Y', $f_date);
-                                         $text = substr($post['content'], 0, 200). '...';
-                                         $ids = $post['id'];
-                                                                
-                                            echo "<a href='article.php?id=' $ids title='{$post['title']}' class='text-dark text-decoration-none'>";
-                                            echo    "<img src='Images/upload/{$post['cover']}' alt='{$post['cover']}' class='w-100 rounded'>";
-                                            echo    "<h1 class='pt-2'>{$post['title']}</h1>";
-                                            echo "</a>";
-                                            echo"<p class='text-secondary'>$date</p>";
-                                            echo "<p class='py-2'>$text</p>";
-                                            echo "<div class='d-flex align-items-center gap-2'>";                                          
-                                            echo    "<a href='#' title='{$post['category']}' class='badge rounded-pill bg-primary text-decoration-none'>{$post['category']}</a>";
-                                            echo "</div>";
-
-                                        echo "</article>";
-                                    echo "</div>";                           
-                        }
-?>
+                            <?php foreach($articles as $article): ?>
+                                <!-- Colonne contenant un article -->
+                                <div class="col-12 col-lg-6 pb-5">
+                                    
+                                    <!-- L'article -->
+                                    <article>
+                                        <a href="article.php?id=<?php echo $article['id']; ?>" title="<?php echo $article['title']; ?>" class="text-dark text-decoration-none">
+                                            <img src="images/upload/<?php echo $article['cover']; ?>" alt="<?php echo $article['title']; ?>" class="w-100 rounded">
+                                            <h1 class="pt-2"><?php echo $article['title']; ?></h1>
+                                        </a>
+                                        <p class="text-secondary">
+                                            <?php 
+                                                $timestamp = strtotime($article['created_at']);
+                                                echo date('d, F, Y', $timestamp); 
+                                            ?>
+                                        </p>
+                                        <p class="py-2">
+                                            <?php echo mb_strimwidth($article['content'], 0, 200, '...'); ?>
+                                        </p>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <a href="categories.php?id=<?php echo $article['category_id'];?>" title="<?php echo $article['category']; ?>" class="badge rounded-pill bg-primary text-decoration-none">
+                                                <?php echo $article['category']; ?>
+                                            </a>
+                                        </div>
+                                    </article>
+                                </div>
+                            <?php endforeach; ?>
 
             </div>
         </div>
