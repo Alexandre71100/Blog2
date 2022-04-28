@@ -54,6 +54,16 @@ $admin = $query->fetchAll();
             <div class="gradient"></div>
             
     <main>
+        <div>
+            <h1>Articles</h1>
+            <a href="formulaire.php" class="badge bg-primary text-decoration-none">Ajout d'article</a>
+        </div>
+
+                <?php if(isset($_GET['successAdd'])): ?>
+                    <div class="alert alert-success mb-4">
+                        L'article à bien été ajouté !
+                    </div>
+                <?php endif; ?>
             
             <table class="table table-bordered">
         <thead>
@@ -70,9 +80,9 @@ $admin = $query->fetchAll();
                 <tr>
                     <td><?php echo $article['id'] ?></td>
                     <td><?php echo $article['title'] ?></td>
-                    <td><?php echo $article['created_at'] ?></td>
+                    <td><?php echo date('d.m.Y', strtotime($article['created_at'])); ?></td>
                     <td>
-                        <a href=""><img src="imgs/pencil.svg" alt="renommer"></a>
+                        <a href="edition.php?id=<?php echo $article['id'] ?>" title="Editer"><img src="imgs/pencil.svg" alt="renommer"></a>
                         <a href="" ><img src="imgs/clear.svg" alt="supprimer"></a>
                     </td>
                 </tr>
