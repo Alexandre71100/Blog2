@@ -28,6 +28,7 @@ $article = $query->fetch();
 $titre = $article['title'];
 $contenu = $article['content'];
 $category = $article['category_id'];
+$picture = $article['cover'];
 $error = null;
 
 /**
@@ -38,7 +39,7 @@ $error = null;
 if (!empty($_POST)) {
     // Nettoyage des données
     $titre = htmlspecialchars(strip_tags($_POST['titre']));
-    $contenu = htmlspecialchars(strip_tags($_POST['content']));
+    $contenu = htmlspecialchars(strip_tags($_POST['contenu']));
     $category = htmlspecialchars(strip_tags($_POST['categorie']));
 
     //Verifie que mes champs soient bien remplis
@@ -48,21 +49,34 @@ if (!empty($_POST)) {
         && !empty($category)
     ) {
         // Est-ce que je reçois une image 
-        if(!empty($_FILES['image']) && $_FILES['image']['error'] === 0) {
+        if (!empty($_FILES['image']) && $_FILES['image']['error'] === 0) {
             // Suppression de l'ancienne image  
-            
+            unlink("../images/upload/{$article['cover']}");
+
             //upload de la nouvelle image
-            
+            require_once 'fonctions.php';
+            $upload = uploadPicture($_FILES['image'], '../images/upload', 1);
+            //dump($upload);
+
+            // Si je reçois une erreur lors de l'upload, je retourne l'erreur
+            // à ma variable "$error" afin d'afficher au dessus du formulaire
+            if (!empty($upload['error'])) {
+                $error = $upload['error'];
+            } else {
+                $picture = $upload['filename'];
+            }
         }
 
-        // Mise à jour des données en table "posts"
-        $query = $db->prepare('UPDATE posts set id, title, content, cover, category_id WHERE id = :id');
-        $query->bindValue(':title', $titre);
-        $query->bindValue(':content', $contenu);
-        $query->bindValue(':cover', $fileName);
-        $query->bindValue('categorie', $category);
-        $query->execute();
-
+        // Mise à jour des données si seulement la variable "$error" est égale à NULL
+        if ($error === null) {
+            $query = $db->prepare('UPDATE posts SET title = :title, content = :content, cover = :cover, category_id = :category WHERE id = :id');
+            $query->bindValue(':title', $titre);
+            $query->bindValue(':content', $contenu);
+            $query->bindValue(':cover', $picture);
+            $query->bindValue(':category', $category, PDO::PARAM_INT);
+            $query->bindValue(':id', $id, PDO::PARAM_INT);
+            $query->execute();
+        }
     } else {
         $error = 'Le titre, le contenu et la catégorie est obligatoire';
     }
@@ -124,6 +138,12 @@ if (!empty($_POST)) {
     <div class="gradient"></div>
     <main>
         <div class="container">
+            <!-- Affichage d'une erreur formulaire si nécessaire -->
+            <?php if ($error !== null) : ?>
+                <div class="alert alert-danger">
+                    <?php echo $error ?>
+                </div>
+            <?php endif ?>
 
             <div class="row">
 
@@ -175,7 +195,7 @@ if (!empty($_POST)) {
                                         <textarea id="form_message" name="contenu" class="form-control" placeholder="Text" rows="10"><?php echo $contenu; ?></textarea>
                                     </div>
                                     <div class="col mb-3">
-                                        <img src="../images/upload/<?php echo $article['cover']; ?>" alt="Mon image" class="img-fluid rounded">
+                                        <img src="../images/upload/<?php echo $picture; ?>" alt="Mon image" class="img-fluid rounded">
                                     </div>
                                 </div>
                                 <div class="col-md-12">
